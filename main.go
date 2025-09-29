@@ -149,7 +149,7 @@ func nonEmptyIntBucket(buckets []HistogramBucket, val int) bool {
 			return true
 		}
 		// Next, check for a range match.
-		if val < currUpperBound && (i == 0 || currUpperBound > prevUpperBound) {
+		if val < currUpperBound && (i == 0 || val > prevUpperBound) {
 			return bucket.NumRange > 0
 		}
 		prevUpperBound = currUpperBound
@@ -166,7 +166,7 @@ func nonEmptyStringBucket(buckets []HistogramBucket, val string) bool {
 			return true
 		}
 		// Next, check for a range match.
-		if val < currUpperBound && (i == 0 || currUpperBound > prevUpperBound) {
+		if val < currUpperBound && (i == 0 || val > prevUpperBound) {
 			return bucket.NumRange > 0
 		}
 		prevUpperBound = currUpperBound
