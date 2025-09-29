@@ -26,8 +26,9 @@ type Statistics struct {
 }
 
 const (
-	intCol    = "i"
-	stringCol = "s"
+	binaryName = "cockroach"
+	intCol     = "i"
+	stringCol  = "s"
 
 	lower     = 1
 	upper     = 110_000
@@ -62,7 +63,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "cockroach", "demo", "--execute", string(sqlContent))
+	cmd := exec.CommandContext(ctx, binaryName, "demo", "--execute", string(sqlContent))
 	output, err := cmd.Output()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
