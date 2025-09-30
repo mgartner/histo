@@ -148,8 +148,8 @@ func main() {
 	}
 
 	// Output results.
-	fmt.Printf("Column 'i' histogram matches %d/%d values in the ranges %s.\n", intCount, total, valRanges)
-	fmt.Printf("Column 's' histogram matches %d/%d values in the ranges %s.\n", strCount, total, valRanges)
+	fmt.Printf("Column 'i' histogram contains %d/%d values in the ranges %s.\n", intCount, total, valRanges)
+	fmt.Printf("Column 's' histogram contains %d/%d values in the ranges %s.\n", strCount, total, valRanges)
 }
 
 func nonEmptyIntBucket(buckets []HistogramBucket, val int) bool {
