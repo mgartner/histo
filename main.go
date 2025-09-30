@@ -29,19 +29,31 @@ const (
 	binaryName = "cockroach"
 	intCol     = "i"
 	stringCol  = "s"
-
-	lower     = 1
-	upper     = 110_000
-	skipLower = -1
-	skipUpper = -1
 )
 
 type span struct {
 	lo, hi int
 }
 
+func (s span) String() string {
+	return fmt.Sprintf("[%d-%d]", s.lo, s.hi)
+}
+
+type spans []span
+
+func (s spans) String() string {
+	var sb strings.Builder
+	for i, sp := range s {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(sp.String())
+	}
+	return sb.String()
+}
+
 var (
-	spans = []span{{1, 10_000}, {10_001, 99_999}, {100_000, 110_000}}
+	valRanges = spans{{1, 10_000}, {100_000, 110_000}}
 )
 
 func main() {
@@ -122,7 +134,9 @@ func main() {
 	// Count matches for column int histogram.
 	intCount := 0
 	strCount := 0
-	for _, sp := range spans {
+	total := 0
+	for _, sp := range valRanges {
+		total += sp.hi - sp.lo + 1
 		for v := sp.lo; v <= sp.hi; v++ {
 			if nonEmptyIntBucket(iHistogram.HistoBuckets, v) {
 				intCount++
@@ -134,8 +148,8 @@ func main() {
 	}
 
 	// Output results.
-	fmt.Printf("Column 'i' histogram matches between %d and %d: %d\n", lower, upper, intCount)
-	fmt.Printf("Column 's' histogram matches between %d and %d: %d\n", lower, upper, strCount)
+	fmt.Printf("Column 'i' histogram matches %d/%d values in the ranges %s.\n", intCount, total, valRanges)
+	fmt.Printf("Column 's' histogram matches %d/%d values in the ranges %s.\n", strCount, total, valRanges)
 }
 
 func nonEmptyIntBucket(buckets []HistogramBucket, val int) bool {
