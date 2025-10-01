@@ -29,6 +29,7 @@ const (
 	binaryName = "cockroach"
 	intCol     = "i"
 	stringCol  = "s"
+	floatCol   = "f"
 )
 
 type span struct {
@@ -112,14 +113,17 @@ func main() {
 		log.Fatal("Failed to parse JSON:", err)
 	}
 
-	// Find histograms for columns "i" and "s".
-	var iHistogram, sHistogram *Statistics
+	// Find histograms for columns "i", "s", and "f".
+	var iHistogram, sHistogram, fHistogram *Statistics
 	for i := range statistics {
 		if len(statistics[i].Columns) == 1 {
-			if statistics[i].Columns[0] == intCol {
+			switch statistics[i].Columns[0] {
+			case intCol:
 				iHistogram = &statistics[i]
-			} else if statistics[i].Columns[0] == stringCol {
+			case stringCol:
 				sHistogram = &statistics[i]
+			case floatCol:
+				fHistogram = &statistics[i]
 			}
 		}
 	}
@@ -130,10 +134,14 @@ func main() {
 	if sHistogram == nil {
 		log.Fatalf("Could not find histogram for column %q", stringCol)
 	}
+	if fHistogram == nil {
+		log.Fatalf("Could not find histogram for column %q", floatCol)
+	}
 
 	// Count matches for column int histogram.
 	intCount := 0
 	strCount := 0
+	floatCount := 0
 	total := 0
 	for _, sp := range valRanges {
 		total += sp.hi - sp.lo + 1
@@ -144,12 +152,16 @@ func main() {
 			if nonEmptyStringBucket(sHistogram.HistoBuckets, strconv.Itoa(v)) {
 				strCount++
 			}
+			if nonEmptyFloatBucket(fHistogram.HistoBuckets, float64(v)) {
+				floatCount++
+			}
 		}
 	}
 
 	// Output results.
 	fmt.Printf("Column 'i' histogram contains %d/%d values in the ranges %s.\n", intCount, total, valRanges)
 	fmt.Printf("Column 's' histogram contains %d/%d values in the ranges %s.\n", strCount, total, valRanges)
+	fmt.Printf("Column 'f' histogram contains %d/%d values in the ranges %s.\n", floatCount, total, valRanges)
 }
 
 func nonEmptyIntBucket(buckets []HistogramBucket, val int) bool {
@@ -176,6 +188,26 @@ func nonEmptyStringBucket(buckets []HistogramBucket, val string) bool {
 	var prevUpperBound string
 	for i, bucket := range buckets {
 		currUpperBound := bucket.UpperBound
+		// First, check for exact upper_bound match.
+		if currUpperBound == val {
+			return true
+		}
+		// Next, check for a range match.
+		if val < currUpperBound && (i == 0 || val > prevUpperBound) {
+			return bucket.NumRange > 0
+		}
+		prevUpperBound = currUpperBound
+	}
+	return false
+}
+
+func nonEmptyFloatBucket(buckets []HistogramBucket, val float64) bool {
+	var prevUpperBound float64
+	for i, bucket := range buckets {
+		currUpperBound, err := strconv.ParseFloat(bucket.UpperBound, 64)
+		if err != nil {
+			panic(fmt.Sprintf("could not parse upper bound %q as int: %v", bucket.UpperBound, err))
+		}
 		// First, check for exact upper_bound match.
 		if currUpperBound == val {
 			return true

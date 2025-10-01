@@ -11,6 +11,7 @@
 
 ```
 Starting CockroachDB demo and executing SQL...
-Column 'i' histogram contains 20000/20001 values in the ranges [1-10000], [100000-110000].
-Column 's' histogram contains 19935/20001 values in the ranges [1-10000], [100000-110000].
+Column 'i' histogram contains 19996/20001 values in the ranges [1-10000], [100000-110000].
+Column 's' histogram contains 19953/20001 values in the ranges [1-10000], [100000-110000].
+Column 'f' histogram contains 19951/20001 values in the ranges [1-10000], [100000-110000].
 ```
